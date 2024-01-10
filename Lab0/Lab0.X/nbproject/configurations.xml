@@ -7,6 +7,7 @@
       <itemPath>BOARD.h</itemPath>
       <itemPath>serial.h</itemPath>
       <itemPath>AD.h</itemPath>
+      <itemPath>ToneGeneration.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -19,6 +20,7 @@
       <itemPath>serial.c</itemPath>
       <itemPath>BOARD.c</itemPath>
       <itemPath>AD.c</itemPath>
+      <itemPath>ToneGeneration.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
