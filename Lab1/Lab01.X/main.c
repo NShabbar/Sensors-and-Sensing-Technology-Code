@@ -20,6 +20,7 @@
 unsigned int frequency = DEFAULT_TONE;
 
 unsigned int flex_frequency(unsigned int AD_val){
+//    unsigned int freq_output = 494 + (2.03*AD_val) - (0.00657*(AD_val*AD_val));    
     unsigned int freq_output = 0.843*AD_val + 528;
     return freq_output;
 }
@@ -29,6 +30,7 @@ int main(int argc, char** argv) {
     AD_Init();
     ToneGeneration_Init();
     AD_AddPins(AD_A1); // turning on pin for flex sensor
+    AD_AddPins(AD_A2); // turning on pin for piezo sensor
 
     BOARD_End();
     
@@ -37,8 +39,11 @@ int main(int argc, char** argv) {
     unsigned int sum = 0; // sum of all readings
     unsigned int new_average = 0;
     unsigned int average = 0;
+    unsigned int piezo = 0;
+    unsigned int new_piezo = 0;
 
 
+    ToneGeneration_ToneOff();
     while (1) {
                 unsigned int flex_val = AD_ReadADPin(AD_A1);
                 unsigned int new_flex_val = flex_frequency(flex_val); // Pin for Flex sensor
@@ -51,12 +56,22 @@ int main(int argc, char** argv) {
                 
         
                 index = (index + 1) % sample_size; // this will increment and wrap index
-        //        
-                if (abs(new_average - average) >= 5) {
+  
+                if (abs(new_average - average) >= 10) {
                     new_average = average;
-                    printf("%d\n", new_average);
+//                    printf("%d\n", new_average);
                     ToneGeneration_SetFrequency(((average-500)/2) + frequency);
+//                    ToneGeneration_ToneOn();
+                }
+                
+                piezo = AD_ReadADPin(AD_A2);
+                
+                if (piezo >= 50){
+                    new_piezo = piezo;
+//                    ToneGeneration_SetFrequency(((average-500)/2) + frequency);
                     ToneGeneration_ToneOn();
+                }else{
+                    ToneGeneration_ToneOff();
                 }
 
     }
