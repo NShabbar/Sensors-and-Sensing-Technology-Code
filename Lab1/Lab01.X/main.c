@@ -40,20 +40,6 @@ int main(int argc, char** argv) {
 
 
     while (1) {
-
-//        if (button_avg_flag) {
-//            unsigned int new_flex_val = AD_ReadADPin(AD_A0);
-//            sum = sum - move_average_readings[index] + new_flex_val; // subtract oldest reading and add new one
-//            move_average_readings[index] = new_flex_val; // store the new reading
-//            average = sum / sample_size;
-//          
-//            index = (index + 1) % sample_size;
-//            if (abs(new_average - average) >= 5) {
-//                new_average = average;
-//                ToneGeneration_SetFrequency((average/5) + frequency);
-//                ToneGeneration_ToneOn();
-//            }
-//        }
                 unsigned int flex_val = AD_ReadADPin(AD_A1);
                 unsigned int new_flex_val = flex_frequency(flex_val); // Pin for Flex sensor
 
@@ -72,12 +58,6 @@ int main(int argc, char** argv) {
                     ToneGeneration_SetFrequency(((average-500)/2) + frequency);
                     ToneGeneration_ToneOn();
                 }
-        //        ToneGeneration_SetFrequency(average); // This was used to test the speaker with flex sensor, filter, and moving average
-        //        ToneGeneration_ToneOn();
-
-        //        ToneGeneration_SetFrequency(flex_val); // This was used to test the speaker with flex sensor
-        //        ToneGeneration_ToneOn();
-        //        ToneGeneration_ToneOff();
 
     }
 }
