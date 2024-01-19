@@ -21,6 +21,7 @@
 #define TONE_196 196
 #define TONE_293 293
 #define TONE_440 440
+#define TONE_500 500
 #define TONE_659 659
 
 
