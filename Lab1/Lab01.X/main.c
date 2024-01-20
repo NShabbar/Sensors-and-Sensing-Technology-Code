@@ -40,10 +40,10 @@ int main(int argc, char** argv) {
     unsigned int new_average = 0;
     unsigned int average = 0;
     unsigned int piezo = 0;
-    unsigned int new_piezo = 0;
+    unsigned int piezo_timer = 0;
 
 
-    ToneGeneration_ToneOff();
+
     while (1) {
                 unsigned int flex_val = AD_ReadADPin(AD_A1);
                 unsigned int new_flex_val = flex_frequency(flex_val); // Pin for Flex sensor
@@ -67,11 +67,14 @@ int main(int argc, char** argv) {
                 piezo = AD_ReadADPin(AD_A2);
                 
                 if (piezo >= 50){
-                    new_piezo = piezo;
+                    piezo_timer = 0;
 //                    ToneGeneration_SetFrequency(((average-500)/2) + frequency);
                     ToneGeneration_ToneOn();
                 }else{
-                    ToneGeneration_ToneOff();
+                    piezo_timer++;
+                    if (piezo_timer > 15000){
+                        ToneGeneration_ToneOff();
+                    }
                 }
 
     }
