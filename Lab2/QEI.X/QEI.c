@@ -8,18 +8,20 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <QEI.h>
+#include <pwm.h>
 
-#define Pin_36 PORTDbits.pin36
-#define Pin_37 PORTDbits.pin37
+static volatile int A = 0;
+static volatile int B = 0;
 
-unsigned int encoder_count = 0;
-unsigned int current_state = 0;
+int encoder_count = 0;
+int current_state = 0;
+int color = 0;
 
 typedef enum{
-    state_00 = 0,
-    state_01 = 1,
-    state_10 = 2,
-    state_11 = 3    
+    state_1 = 0,
+    state_2 = 1,
+    state_3 = 2,
+    state_4 = 3    
 } encoder_states;
 
 char QEI_Init(void) {
@@ -32,6 +34,8 @@ char QEI_Init(void) {
                 IPC6bits.CNIP = 1; //set priority
                 IPC6bits.CNIS = 3; // and sub priority
                 IEC1bits.CNIE = 1; // enable change notify
+                
+                TRISDSET = 0xC0;
   
                 // the rest of the function goes here
                 return SUCCESS;
@@ -41,31 +45,61 @@ void __ISR(_CHANGE_NOTICE_VECTOR) ChangeNotice_Handler(void) {
     static char readPort = 0;
             readPort = PORTD; // this read is required to make the interrupt work
             IFS1bits.CNIF = 0;
+            
+            A = PORTDbits.RD6;
+            B = PORTDbits.RD7;
+            
+            printf("Encoder Count value: %d\n", encoder_count);
+            printf("A: %d\n", A);
+            printf("B: %d\n", B);
+            printf("color: %d\n", color);
+            
+            if (encoder_count == 24 || encoder_count == -24){
+                QEI_ResetPosition();
+            }
+            
                //anything else that needs to happen goes here
             switch(current_state){
-                case state_00:
-                    if (readPort & (Pin_36&&Pin_37)){
-                        current_state = state_11;
-                    }else if (readPort & (!Pin_36 & Pin_37)){
-                        current_state = state_01;
+                case state_1:
+                    if ((A == 1) && (B == 0)){
+                        current_state = state_2;
+                        encoder_count--;
+//                        printf("Stage 1 going to 2.\n");
+                    }else if ((A == 0) && (B == 1)){
+                        current_state = state_4;
                         encoder_count++;
+//                        printf("Stage 1 going to 4.\n");
                     }
                     break;
-                case state_01:
-                    if (readPort & (!Pin_36&&Pin_37)){
-                        current_state = state_01;
+                case state_2:
+                    if ((A == 0) && (B == 0)){
+                        current_state = state_3;
+//                        printf("Stage 2 going to 3.\n");
+                    }else if ((A == 1) && (B == 1)){
+                        current_state = state_1;
+//                        printf("Stage 2 going to 1.\n");
                     }
                     break;
-                case state_10:
-                    if (readPort & (1 <<15)){
-                        current_state = state_10;
-                    }else if (readPort & (1 << 16)){
-                        current_state = state_00;
+                case state_3:
+                    if ((A == 0) && (B == 1)){
+                        current_state = state_4;
+//                        printf("Stage 3 going to 4.\n");
+                    }else if ((A == 1) && (B == 0)){
+                        current_state = state_2;
+//                        printf("Stage 3 going to 2.\n");
                     }
                     break;
-                case state_11:
+                case state_4:
+                    if ((A == 1) && (B == 1)){
+                        current_state = state_1;
+//                        printf("Stage 4 going to 1.\n");
+                    }else if ((A == 0) && (B == 0)){
+                        current_state = state_3;
+//                        printf("Stage 4 going to 3.\n");
+                    }
                     break;
             }
+//            printf("Statemachine stage: %d\n", current_state);
 }
 
 /**
@@ -87,9 +121,96 @@ void QEI_ResetPosition(){
     encoder_count = 0;
 } 
 
+int encoder_to_degrees(int value){
+    int degrees = value*15;
+    return degrees;
+}
 
-//int main(int argc, char** argv) {
-//
-//    return (EXIT_SUCCESS);
-//}
+int main(int argc, char** argv) {
+    BOARD_Init();
+    QEI_Init();
+    PWM_Init();
+    PWM_AddPins(PWM_PORTZ06);
+    PWM_AddPins(PWM_PORTY12);
+    PWM_AddPins(PWM_PORTY10);
+    PWM_SetFrequency(PWM_1KHZ);
+    
+    int red = PWM_PORTZ06;
+    int green = PWM_PORTY12;
+    int blue = PWM_PORTY10;
+    
+   
+    while(1){
+//        int hue = encoder_to_degrees(encoder_count);
+        
+        if (encoder_count >= 0){
+            color = (encoder_count % 4) * 250;
+        }
+        if (encoder_count < 0){
+            color = 1000 - ((encoder_count % 4) * 250);
+        }
+        if ((encoder_count >= 0 && encoder_count <= 3) || (encoder_count >= -23 && encoder_count <= -20)){ // Yellow range
+            PWM_SetDutyCycle(red, 0);
+            PWM_SetDutyCycle(green, color);
+            PWM_SetDutyCycle(blue, 1000);
+        }
+        if ((encoder_count >= 4 && encoder_count <= 7) || (encoder_count >= -19 && encoder_count <= -16)){ // Red range
+            PWM_SetDutyCycle(red, 0);
+            PWM_SetDutyCycle(green, 1000);
+            PWM_SetDutyCycle(blue, 1000 - color);
+        }
+        if ((encoder_count >= 8 && encoder_count <= 11) || (encoder_count >= -15 && encoder_count <= -12)){ // Magenta range
+            PWM_SetDutyCycle(red, color);
+            PWM_SetDutyCycle(green, 1000);
+            PWM_SetDutyCycle(blue, 0);
+        }
+        if ((encoder_count >= 12 && encoder_count <= 15) || (encoder_count >= -11 && encoder_count <= -8)){ // Blue range
+            PWM_SetDutyCycle(red, 1000);
+            PWM_SetDutyCycle(green, 1000 - color);
+            PWM_SetDutyCycle(blue, 0);
+        }
+        if ((encoder_count >= 16 && encoder_count <= 19) || (encoder_count >= -7 && encoder_count <= -4)){ // Teal range
+            PWM_SetDutyCycle(red, 1000);
+            PWM_SetDutyCycle(green, 0);
+            PWM_SetDutyCycle(blue, color);
+        }
+        if ((encoder_count >= 20 && encoder_count <= 23) || (encoder_count >= -3 && encoder_count < 0)){ // Green range
+            PWM_SetDutyCycle(red, 1000 - color);
+            PWM_SetDutyCycle(green, 0);
+            PWM_SetDutyCycle(blue, 1000);
+        }
+
+//        if (hue >= 0 || hue < 60){ // Yellow range
+//            PWM_SetDutyCycle(red, 0);
+//            PWM_SetDutyCycle(green, color);
+//            PWM_SetDutyCycle(blue, 1000);
+//        }
+//        if (hue >= 60 || hue < 120){ // Red range
+//            PWM_SetDutyCycle(red, 0);
+//            PWM_SetDutyCycle(green, 1000);
+//            PWM_SetDutyCycle(blue, color);
+//        }
+//        if (hue >= 120 || hue < 180){ // Magenta range
+//            PWM_SetDutyCycle(red, color);
+//            PWM_SetDutyCycle(green, 1000);
+//            PWM_SetDutyCycle(blue, 0);
+//        }
+//        if (hue >= 180 || hue < 240){ // Blue range
+//            PWM_SetDutyCycle(red, 1000);
+//            PWM_SetDutyCycle(green, color);
+//            PWM_SetDutyCycle(blue, 0);
+//        }
+//        if (hue >= 240 || hue < 300){ // Teal range
+//            PWM_SetDutyCycle(red, 1000);
+//            PWM_SetDutyCycle(green, 0);
+//            PWM_SetDutyCycle(blue, color);
+//        }
+//        if (hue >= 300 || hue < 360){ // Green range
+//            PWM_SetDutyCycle(red, color);
+//            PWM_SetDutyCycle(green, 0);
+//            PWM_SetDutyCycle(blue, 1000);
+//        }
+    }
+    return (EXIT_SUCCESS);
+}
 
