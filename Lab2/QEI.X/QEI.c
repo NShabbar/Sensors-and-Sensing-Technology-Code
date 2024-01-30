@@ -179,37 +179,6 @@ int main(int argc, char** argv) {
             PWM_SetDutyCycle(green, 0);
             PWM_SetDutyCycle(blue, 1000);
         }
-
-//        if (hue >= 0 || hue < 60){ // Yellow range
-//            PWM_SetDutyCycle(red, 0);
-//            PWM_SetDutyCycle(green, color);
-//            PWM_SetDutyCycle(blue, 1000);
-//        }
-//        if (hue >= 60 || hue < 120){ // Red range
-//            PWM_SetDutyCycle(red, 0);
-//            PWM_SetDutyCycle(green, 1000);
-//            PWM_SetDutyCycle(blue, color);
-//        }
-//        if (hue >= 120 || hue < 180){ // Magenta range
-//            PWM_SetDutyCycle(red, color);
-//            PWM_SetDutyCycle(green, 1000);
-//            PWM_SetDutyCycle(blue, 0);
-//        }
-//        if (hue >= 180 || hue < 240){ // Blue range
-//            PWM_SetDutyCycle(red, 1000);
-//            PWM_SetDutyCycle(green, color);
-//            PWM_SetDutyCycle(blue, 0);
-//        }
-//        if (hue >= 240 || hue < 300){ // Teal range
-//            PWM_SetDutyCycle(red, 1000);
-//            PWM_SetDutyCycle(green, 0);
-//            PWM_SetDutyCycle(blue, color);
-//        }
-//        if (hue >= 300 || hue < 360){ // Green range
-//            PWM_SetDutyCycle(red, color);
-//            PWM_SetDutyCycle(green, 0);
-//            PWM_SetDutyCycle(blue, 1000);
-//        }
     }
     return (EXIT_SUCCESS);
 }
