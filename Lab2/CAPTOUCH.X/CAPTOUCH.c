@@ -13,10 +13,18 @@
 #include <timers.h>
 
 #define TOUCH_THRESHOLD 1000
+#define CapTouch PORTDbits.RD11 // Pin 35
 
-static volatile unsigned int touchPeriod;
-static volatile unsigned int prevTouchPeriod;
+static volatile unsigned int touch_period;
+static volatile unsigned int prev_touch_period;
+static volatile unsigned int curr_timer_val;
 
+unsigned int move_average_readings[TOUCH_THRESHOLD] = {0};
+unsigned int i = 0; // current index
+unsigned int sum = 0; // sum of all readings
+unsigned int new_average = 0;
+unsigned int average = 0;
+unsigned int new_reading = 0;
 
 char CAPTOUCH_Init(void) {
     // following block inits the timer
@@ -35,28 +43,21 @@ char CAPTOUCH_Init(void) {
     IEC0bits.IC4IE = 1;
     IC4CONbits.ON = 1;
     // whatever else you need to do to initialize your module
+
+    TRISDbits.TRISD11 = 1; // input needs to be high for input
     return SUCCESS;
 }
 
 void __ISR(_INPUT_CAPTURE_4_VECTOR) InputCapture_Handler(void) {
     IFS0bits.IC4IF = 0;
     // IC4BUF contains the timer value when the rising edge occurred.
-    unsigned int currentTimerValue = IC4BUF;
-    touchPeriod = currentTimerValue - prevTouchPeriod;
-    prevTouchPeriod = currentTimerValue;
-}
-
-
-/**
- * @function    CAPTOUCH_Init(void)
- * @brief       This function initializes the module for use. Initialization is 
- *              done by opening and configuring timer 2, opening and configuring the input capture
- *              peripheral, and setting up the interrupt.
- * @return      SUCCESS or ERROR (as defined in BOARD.h)
- */
-char CAPTOUCH_Init(void){
-    unsigned int averagedTouchPeriod = (touchPeriod + prevTouchPeriod) / 2;
-    return (averagedTouchPeriod > TOUCH_THRESHOLD) ? TRUE : FALSE;
+    curr_timer_val = IC4BUF;
+    int is_touched = CAPTOUCH_IsTouched();
+    if (is_touched) {
+        touch_period = curr_timer_val - prev_touch_period;
+        prev_touch_period = curr_timer_val;
+        printf("Time: %d\n", touch_period);
+    }
 }
 
 /**
@@ -66,13 +67,30 @@ char CAPTOUCH_Init(void){
  *              inside this function.
  * @return      TRUE or FALSE
  */
-char CAPTOUCH_IsTouched(void);
+char CAPTOUCH_IsTouched(void) {
+    new_reading = CapTouch;
+
+    sum = sum - move_average_readings[i] + new_reading; // subtract oldest reading and add new one
+    move_average_readings[i] = new_reading; // store the new reading
+
+    average = sum / TOUCH_THRESHOLD; // calculate the moving average
+
+    i = (i + 1) % TOUCH_THRESHOLD; // this will increment and wrap index
+    if (abs(new_average - average) >= 2000) {
+        new_average = average;
+    }
+    return (new_average > TOUCH_THRESHOLD) ? TRUE : FALSE;
+}
 
 /*
  * 
  */
 int main(int argc, char** argv) {
-
+    BOARD_Init();
+    SERIAL_Init();
+    TIMERS_Init();
+    CAPTOUCH_Init();
+    while (1);
     return (EXIT_SUCCESS);
 }
 
