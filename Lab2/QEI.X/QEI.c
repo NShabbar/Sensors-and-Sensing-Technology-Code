@@ -132,8 +132,6 @@ int main(int argc, char** argv) {
     
    
     while(1){
-//        int hue = encoder_to_degrees(encoder_count);
-        
         if (encoder_count >= 0){
             color = (encoder_count % 4) * 250;
         }
