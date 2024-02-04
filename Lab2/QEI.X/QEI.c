@@ -35,7 +35,7 @@ char QEI_Init(void) {
                 IPC6bits.CNIS = 3; // and sub priority
                 IEC1bits.CNIE = 1; // enable change notify
                 
-                TRISDSET = 0xC0;
+                TRISDSET = 0xC0; // turning on pin 6 and 7
   
                 // the rest of the function goes here
                 return SUCCESS;
@@ -64,42 +64,33 @@ void __ISR(_CHANGE_NOTICE_VECTOR) ChangeNotice_Handler(void) {
                     if ((A == 1) && (B == 0)){
                         current_state = state_2;
                         encoder_count--;
-//                        printf("Stage 1 going to 2.\n");
                     }else if ((A == 0) && (B == 1)){
                         current_state = state_4;
                         encoder_count++;
-//                        printf("Stage 1 going to 4.\n");
                     }
                     break;
                 case state_2:
                     if ((A == 0) && (B == 0)){
                         current_state = state_3;
-//                        printf("Stage 2 going to 3.\n");
                     }else if ((A == 1) && (B == 1)){
                         current_state = state_1;
-//                        printf("Stage 2 going to 1.\n");
                     }
                     break;
                 case state_3:
                     if ((A == 0) && (B == 1)){
                         current_state = state_4;
-//                        printf("Stage 3 going to 4.\n");
                     }else if ((A == 1) && (B == 0)){
                         current_state = state_2;
-//                        printf("Stage 3 going to 2.\n");
                     }
                     break;
                 case state_4:
                     if ((A == 1) && (B == 1)){
                         current_state = state_1;
-//                        printf("Stage 4 going to 1.\n");
                     }else if ((A == 0) && (B == 0)){
                         current_state = state_3;
-//                        printf("Stage 4 going to 3.\n");
                     }
                     break;
             }
-//            printf("Statemachine stage: %d\n", current_state);
 }
 
 /**

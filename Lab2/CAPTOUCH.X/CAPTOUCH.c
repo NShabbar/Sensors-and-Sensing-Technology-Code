@@ -55,7 +55,7 @@ void __ISR(_INPUT_CAPTURE_4_VECTOR) InputCapture_Handler(void) {
     curr_timer_val = IC4BUF;
     touch_period = curr_timer_val - prev_touch_period;
     if (touch_period < 0) {
-        touch_period += 65536;
+        touch_period += 65536; // roll over large gaps in captouch sensor.
     }
     prev_touch_period = curr_timer_val;
 }
@@ -89,9 +89,6 @@ int main(int argc, char** argv) {
         average = sum / TOUCH_THRESHOLD; // calculate the moving average
 
         i = (i + 1) % TOUCH_THRESHOLD; // this will increment and wrap index
-        //        if (abs(new_average - average) >= 2000) {
-        //            new_average = average;
-        //        }
 
         if (is_touched) {
             if (average < 6000) {
