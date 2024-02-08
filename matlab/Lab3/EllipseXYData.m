@@ -302,3 +302,47 @@ Ymeas = [-2.2060
    -0.6457
     1.7754
    -0.3000];
+
+
+% Least Squares
+% Length of data set X
+len = length(Xmeas);
+
+% Creating Matrix A for the Least Squares.
+A = [Xmeas Ymeas.^2 Ymeas ones(len, 1)]; 
+
+% Creating Matrix B for the Least Squares.
+B = -Xmeas.^2;
+
+% Get the Z matrix
+Z = A\B; % NOTE: This is not division, this is (A^t * A)^-1 * A^t * B
+
+% These values were taken from Z, and displayed by Z.
+z1 = -0.7923;
+z2 = 0.2658;
+z3 = 0.1801;
+z4 = -1.0349;
+
+% Plug in above values into z1, z2, z3, and z4 equations to get...
+x0 = 0.39615;
+y0 = -0.3388;
+a = 1.2073;
+b = 2.3418;
+
+% Calibrating equations from lab doc
+xhat = (Xmeas-x0)/a;
+yhat = (Ymeas-y0)/b;
+
+% Plot of raw data
+figure;
+plot(Xmeas, Ymeas, 'ro'); 
+hold on;
+
+% Plot of calibrated data
+plot(xhat, yhat, 'bo');
+
+% Add legend and labels
+legend('Original Data', 'Calibrated Data');
+xlabel('X data');
+ylabel('Y data');
+title('Least Squares Data Calibration');
