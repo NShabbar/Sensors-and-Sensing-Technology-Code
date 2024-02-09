@@ -10,7 +10,10 @@
 #include <BNO055.h>
 #include <BOARD.h>
 #include <I2C.h>
-#include <serial.h>
+#include <serial.h>\
+
+//#define ACCEL
+#define MAG
 
 
 
@@ -18,15 +21,31 @@ int main(int argc, char** argv) {
     BOARD_Init();
     BNO055_Init();
     
-    int accel_x = BNO055_ReadAccelX();
-    int accel_y = BNO055_ReadAccelY();
-    int accel_z = BNO055_ReadAccelZ();
+    int count = 0;
     
     while(1){
-        printf("Begin Calibration\n");
-        printf("(X, Y, Z): (%d, %d, %d)", accel_x, accel_y, accel_z);
+#ifdef ACCEL
+        int accel_x = BNO055_ReadAccelX();
+        int accel_y = BNO055_ReadAccelY();
+        int accel_z = BNO055_ReadAccelZ();
+        
+        printf("%d, %d, %d \n", accel_x, accel_y, accel_z);
+#endif 
+        
+#ifdef MAG
+        int mag_x = BNO055_ReadMagX();
+        int mag_y = BNO055_ReadMagY();
+        int mag_z = BNO055_ReadMagZ();
+        
+        printf("%d, %d, %d \n", mag_x, mag_y, mag_z);
+#endif   
+        if(count < 2001){
+            asm("nop");
+            count++;
+        }else{
+            count = 0;
+        }
     }
     
     return (EXIT_SUCCESS);
 }
-
