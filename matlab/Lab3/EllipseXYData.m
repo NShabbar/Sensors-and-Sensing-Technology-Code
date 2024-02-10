@@ -304,6 +304,8 @@ Ymeas = [-2.2060
    -0.3000];
 
 
+
+
 % Least Squares
 % Length of data set X
 len = length(Xmeas);
@@ -335,11 +337,11 @@ yhat = (Ymeas-y0)/b;
 
 % Plot of raw data
 figure;
-plot(Xmeas, Ymeas, 'ro'); 
+plot(Xmeas, Ymeas, 'r.'); 
 hold on;
 
 % Plot of calibrated data
-plot(xhat, yhat, 'bo');
+plot(xhat, yhat, 'b.');
 
 % Add legend and labels
 legend('Original Data', 'Calibrated Data');
