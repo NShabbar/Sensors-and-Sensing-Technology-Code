@@ -9,7 +9,7 @@
 #define	I2C_H
 
 
-#define I2C_DEFAULT_RATE 100000
+#define I2C_DEFAULT_RATE 115200
 
 /**
  * @Function I2C_Init(Rate)
