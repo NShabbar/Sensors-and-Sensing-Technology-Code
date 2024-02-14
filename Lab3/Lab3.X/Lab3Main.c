@@ -16,7 +16,8 @@
 //#define MAG_data
 //#define Gyr_10s_data
 //#define accel_test
-#define mag_test
+//#define mag_test
+#define gyro_test
 
 
 #define accel_x0  -16.71
@@ -32,6 +33,10 @@
 #define mag_a -296.01
 #define mag_b  -533.91
 #define mag_c -530.01
+
+#define X_bias -16.20960699
+#define Y_bias 28.33973081
+#define Z_bias 13.71325617
 
 
 #define NOPS_FOR_20_MS 12500
@@ -117,25 +122,25 @@ int main(int argc, char** argv) {
 
 
         index = (index + 1) % sample_size; // this will increment and wrap index
-        if (max_x < mag_x){ // max of x
+        if (max_x < mag_x) { // max of x
             max_x = mag_x;
         }
-        if (max_y < mag_y){ // max of y
+        if (max_y < mag_y) { // max of y
             max_y = mag_y;
         }
-        if (max_z < mag_z){ // max of z
+        if (max_z < mag_z) { // max of z
             max_z = mag_z;
         }
-        if (min_x > mag_x){ // min of x
+        if (min_x > mag_x) { // min of x
             min_x = mag_x;
         }
-        if (min_y > mag_y){ // min of y
+        if (min_y > mag_y) { // min of y
             min_y = mag_y;
         }
-        if (min_z > mag_z){ // min of z
+        if (min_z > mag_z) { // min of z
             min_z = mag_z;
         }
-        
+
         float x_hat = (mag_x - mag_x0) / mag_a; // calibrated x
         float y_hat = (mag_y - mag_y0) / mag_b; // calibrated y
         float z_hat = (mag_z - mag_z0) / mag_c; // calibrated z
@@ -144,6 +149,28 @@ int main(int argc, char** argv) {
         printf("X Max: %d\nX Min: %d\n", max_x, min_x);
         printf("Y Max: %d\nY Min: %d\n", max_y, min_y);
         printf("Z Max: %d\nZ Min: %d\n", max_z, min_z);
+#endif
+
+#ifdef gyro_test
+        int gyr_x = BNO055_ReadGyroX();
+        int gyr_y = BNO055_ReadGyroY();
+        int gyr_z = BNO055_ReadGyroZ();
+
+        sum = sum - move_average_readings[index] + (gyr_x/131) + (gyr_y/131) + (gyr_z/131); // subtract oldest reading and add new one
+        move_average_readings[index] = ((gyr_x/131) + (gyr_y/131) + (gyr_z/131))/3; // store the new reading
+
+        average = sum / sample_size; // calculate the moving average
+
+
+        index = (index + 1) % sample_size; // this will increment and wrap index
+
+
+        float x_hat = (gyr_x - X_bias) / 131; // calibrated x, divide by 131 or 16 depends on the board firmware of current board
+        float y_hat = (gyr_y - Y_bias) / 131; // calibrated y, divide by 131 or 16 depends on the board firmware of current board
+        float z_hat = (gyr_z - Z_bias) / 131; // calibrated z, divide by 131 or 16 depends on the board firmware of current board
+
+        printf("X Angle: %f, Y Angle: %f, Z Angle: %f\n", x_hat, y_hat, z_hat);
+        printf("Drift: %d\n", average);
 #endif        
         //        NOP();
 
