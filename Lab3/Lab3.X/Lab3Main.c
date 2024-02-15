@@ -167,6 +167,8 @@ int main(int argc, char** argv) {
         angle_x = (angle_x + x_hat) * tau;
         angle_y = (angle_y + y_hat) * tau;
         angle_z = (angle_z + z_hat) * tau;
+        
+        printf("\nAngle X: %f\nAngle Y: %f\nAngle Z: %f\n", angle_x, angle_y, angle_z);
 #endif        
         if (count < NOPS_FOR_20_MS) {
             asm("nop");
