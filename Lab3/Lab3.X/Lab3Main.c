@@ -54,6 +54,10 @@ int min_y = 0;
 int max_z = 0;
 int min_z = 0;
 
+float angle_x = 0;
+float angle_x = 0;
+float angle_x = 0;
+
 int main(int argc, char** argv) {
     BOARD_Init();
 
@@ -94,7 +98,7 @@ int main(int argc, char** argv) {
         int gyr_z = BNO055_ReadGyroZ();
 
 
-        printf("%d, %d, %d \n", gyr_x, gyr_y, gyr_z);
+        printf("%d,%d,%d\n", gyr_x, gyr_y, gyr_z);
 
 #endif  
 
@@ -155,26 +159,13 @@ int main(int argc, char** argv) {
         int gyr_x = BNO055_ReadGyroX();
         int gyr_y = BNO055_ReadGyroY();
         int gyr_z = BNO055_ReadGyroZ();
+        float x_hat = (gyr_x - X_bias) / 131; // calibrated x, divide by 131 or 16 depends on the board firmware of current board
+        float y_hat = (gyr_y - Y_bias) / 131; // calibrated y, divide by 131 or 16 depends on the board firmware of current board
+        float z_hat = (gyr_z - Z_bias) / 131; // calibrated z, divide by 131 or 16 depends on the board firmware of current board
 
-        sum = sum - move_average_readings[index] + (gyr_x/16) + (gyr_y/16) + (gyr_z/16); // subtract oldest reading and add new one
-        move_average_readings[index] = ((gyr_x/16) + (gyr_y/16) + (gyr_z/16))/3; // store the new reading
-
-        average = sum / sample_size; // calculate the moving average
-
-
-        index = (index + 1) % sample_size; // this will increment and wrap index
-
-
-        float x_hat = (gyr_x - X_bias) / 16; // calibrated x, divide by 131 or 16 depends on the board firmware of current board
-        float y_hat = (gyr_y - Y_bias) / 16; // calibrated y, divide by 131 or 16 depends on the board firmware of current board
-        float z_hat = (gyr_z - Z_bias) / 16; // calibrated z, divide by 131 or 16 depends on the board firmware of current board
-        
-        printf("%d, %d, %d\n", gyr_x, gyr_y, gyr_z);
-//        printf("X Angle: %f, Y Angle: %f, Z Angle: %f\n", x_hat, y_hat, z_hat);
-//        printf("Drift: %d\n", average);
+        integration = x_hat + y_hat + z_hat;
+        printf("Angle: %d\n", integration);
 #endif        
-        //        NOP();
-
         if (count < NOPS_FOR_20_MS) {
             asm("nop");
             count++;
