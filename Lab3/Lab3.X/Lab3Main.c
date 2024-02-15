@@ -41,6 +41,7 @@
 
 #define NOPS_FOR_20_MS 12500
 #define sample_size 150
+#define tau 0.002 // sample rate of 20 ms
 
 int move_average_readings[sample_size] = {0}; // array to store samples of frequency
 int index = 0; // current index
@@ -55,8 +56,8 @@ int max_z = 0;
 int min_z = 0;
 
 float angle_x = 0;
-float angle_x = 0;
-float angle_x = 0;
+float angle_y = 0;
+float angle_z = 0;
 
 int main(int argc, char** argv) {
     BOARD_Init();
@@ -162,9 +163,10 @@ int main(int argc, char** argv) {
         float x_hat = (gyr_x - X_bias) / 131; // calibrated x, divide by 131 or 16 depends on the board firmware of current board
         float y_hat = (gyr_y - Y_bias) / 131; // calibrated y, divide by 131 or 16 depends on the board firmware of current board
         float z_hat = (gyr_z - Z_bias) / 131; // calibrated z, divide by 131 or 16 depends on the board firmware of current board
-
-        integration = x_hat + y_hat + z_hat;
-        printf("Angle: %d\n", integration);
+        
+        angle_x = (angle_x + x_hat) * tau;
+        angle_y = (angle_y + y_hat) * tau;
+        angle_z = (angle_z + z_hat) * tau;
 #endif        
         if (count < NOPS_FOR_20_MS) {
             asm("nop");
